@@ -40,11 +40,12 @@ st.write("Enter your marks or grade points and get semester GPA & overall CGPA."
 
 num_sem = st.number_input("Enter number of semesters:", min_value=1, step=1)
 
-if "all_semesters" not in st.session_state:
-    st.session_state.all_semesters = []
+# initialize a per-semester storage (dict) to avoid duplicate appends
+if "semesters" not in st.session_state:
+    st.session_state.semesters = {}
 
 if st.button("Start Calculation"):
-    st.session_state.all_semesters = []  # reset data
+    st.session_state.semesters = {}  # reset data
 
 for s in range(1, int(num_sem) + 1):
     st.subheader(f"📘 Semester {s}")
@@ -64,20 +65,27 @@ for s in range(1, int(num_sem) + 1):
 
         courses.append((credit, gp))
 
+    # when user clicks calculate for this semester, store/overwrite this semester entry
     if st.button(f"Calculate GPA for Semester {s}", key=f"calc_{s}"):
         sem_credits, sem_weighted, sem_gpa = calc_semester_gpa(courses)
         st.success(f"✅ GPA for Semester {s}: {sem_gpa}")
-        st.session_state.all_semesters.append((sem_credits, sem_weighted, sem_gpa))
+        # store by semester index to avoid duplicates and allow overwrite
+        st.session_state.semesters[str(s)] = (sem_credits, sem_weighted, sem_gpa)
 
 # ===== CGPA Calculation Section =====
 if st.button("Calculate Overall CGPA"):
-    if len(st.session_state.all_semesters) == 0:
+    if len(st.session_state.semesters) == 0:
         st.warning("Please calculate at least one semester GPA first.")
     else:
-        cumulative_credits = sum([s[0] for s in st.session_state.all_semesters])
-        cumulative_weighted_points = sum([s[1] for s in st.session_state.all_semesters])
-        cgpa = cumulative_weighted_points / cumulative_credits
-        st.subheader("📊 Cumulative Summary")
-        for i, sem in enumerate(st.session_state.all_semesters, start=1):
-            st.write(f"Semester {i}: GPA = {sem[2]}, Credits = {sem[0]}")
-        st.success(f"🎯 Final CGPA = {round(cgpa, 2)}")
+        cumulative_credits = sum([v[0] for v in st.session_state.semesters.values()])
+        cumulative_weighted_points = sum([v[1] for v in st.session_state.semesters.values()])
+        if cumulative_credits == 0:
+            st.error("Total credits are zero; cannot compute CGPA.")
+        else:
+            cgpa = cumulative_weighted_points / cumulative_credits
+            st.subheader("📊 Cumulative Summary")
+            # show semesters in numeric order
+            for i in sorted(st.session_state.semesters.keys(), key=lambda x: int(x)):
+                sem = st.session_state.semesters[i]
+                st.write(f"Semester {i}: GPA = {sem[2]}, Credits = {sem[0]}")
+            st.success(f"🎯 Final CGPA = {round(cgpa, 2)}")
