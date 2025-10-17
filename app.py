@@ -4,7 +4,7 @@ def marks_to_gp(marks):
     m = float(marks)
     if m >= 85:
         return 4.00
-    elif m >=80:
+    elif m >= 80:
         return 3.66
     elif m >= 75:
         return 3.33
@@ -20,22 +20,22 @@ def marks_to_gp(marks):
         return 1.70
     else:
         return 0.00
-    
+
 def calc_semester_gpa(courses):
     total_credits = 0.0
     total_weight_points = 0.0
     for credit, gp in courses:
-        total_credits = + float(credit)
-        total_weight_points = + float(credit) * float(gp)
+        total_credits += float(credit)
+        total_weight_points += float(credit) * float(gp)
     if total_credits == 0:
-      return 0.0, 0.0, 0
-    gpa = total_weight_points/total_credits
-    return total_credits,total_weight_points, round(gpa,2)
+        return 0.0, 0.0, 0.0
+    gpa = total_weight_points / total_credits
+    return total_credits, total_weight_points, round(gpa, 2)
 
 st.title("GPA & CGPA Calculator")
 st.write("Enter your marks or grade points and get semester GPA & overall CGPA.")
 
-num_sem = st.number_input("Enter the number of Semesters:", min = 1, step = 1)
+num_sem = st.number_input("Enter the number of Semesters:", min_value=1, step=1, format="%d")
 
 if "semesters" not in st.session_state:
     st.session_state.semesters = {}
@@ -43,14 +43,14 @@ if "semesters" not in st.session_state:
 if st.button("Start Calculation"):
     st.session_state.semesters = {}
 
-for s in range(1, int(num_sem)+1):
+for s in range(1, int(num_sem) + 1):
     st.subheader(f"Semester {s}")
-    num_courses = st.input_number(f"Number of Courses in Semester {s}:", min_value = 1, step = 1, key = f"courses {s}")
+    num_courses = st.number_input(f"Number of Courses in Semester {s}:", min_value=1, step=1, format="%d", key=f"courses_{s}")
 
     courses = []
     for i in range(1, int(num_courses) + 1):
         st.markdown(f"**Course {i}**")
-        credit = st.number_input(f"Credit hours for course {i} :", min_value=1, step=0.5, key=f"credit_{s}_{i}")
+        credit = st.number_input(f"Credit hours for course {i}:", min_value=0.5, step=0.5, key=f"credit_{s}_{i}")
         mode = st.radio(f"Do you want to enter marks or grade point for course {i}?", ["Marks", "Grade Point"], key=f"mode_{s}_{i}")
 
         if mode == "Grade Point":
@@ -81,6 +81,3 @@ if st.button("Calculate Overall CGPA"):
                 sem = st.session_state.semesters[i]
                 st.write(f"Semester {i}: GPA = {sem[2]}, Credits = {sem[0]}")
             st.success(f"Final CGPA = {round(cgpa, 2)}")
-
-
-
